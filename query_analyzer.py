@@ -32,7 +32,8 @@ class QueryAnalyzer:
             'career': ['job', 'career', 'work', 'employment', 'resume', 'interview', 'promotion'],
             'education': ['learn', 'study', 'course', 'degree', 'school', 'university', 'training'],
             'technology': ['tech', 'software', 'code', 'programming', 'app', 'system', 'digital'],
-            'personal': ['personal', 'life', 'relationship', 'family', 'home', 'lifestyle']
+            'personal': ['personal', 'life', 'relationship', 'family', 'home', 'lifestyle'],
+            'gaming': ['gaming', 'game', 'deck', 'card', 'yugioh', 'yu-gi-oh', 'strategy', 'competitive', 'tournament', 'meta', 'burn']
         }
         
         self.agent_specializations = {
@@ -176,7 +177,8 @@ class QueryAnalyzer:
             'personal': 'Life_Coach',
             'career': 'Career_Coach',
             'technical': 'Tech_Expert',
-            'health': 'Therapist'
+            'health': 'Therapist',
+            'gaming': 'Gaming_Expert'
         }
         
         # Add agents based on perspectives
@@ -248,12 +250,12 @@ class QueryAnalyzer:
             },
             'CSA': {
                 'specializations': ['strategic planning', 'market analysis', 'competitive intelligence', 'business development'],
-                'optimal_provider': 'anthropic',
+                'optimal_provider': 'openai',
                 'strength': 'Strategic thinking and analytical reasoning'
             },
             'COO': {
                 'specializations': ['operations management', 'process optimization', 'project management', 'execution planning'],
-                'optimal_provider': 'anthropic',
+                'optimal_provider': 'openai',
                 'strength': 'Operational excellence and systematic thinking'
             },
             'CRO': {
@@ -263,7 +265,7 @@ class QueryAnalyzer:
             },
             'Legal_Expert': {
                 'specializations': ['legal analysis', 'contract review', 'rights assessment', 'compliance guidance'],
-                'optimal_provider': 'anthropic',
+                'optimal_provider': 'openai',
                 'strength': 'Legal knowledge and analytical precision'
             },
             'Life_Coach': {
@@ -278,8 +280,13 @@ class QueryAnalyzer:
             },
             'Tech_Expert': {
                 'specializations': ['technology analysis', 'system design', 'digital transformation', 'innovation'],
-                'optimal_provider': 'anthropic',
+                'optimal_provider': 'openai',
                 'strength': 'Technical expertise and systematic analysis'
+            },
+            'Gaming_Expert': {
+                'specializations': ['gaming strategy', 'competitive analysis', 'deck building', 'meta analysis'],
+                'optimal_provider': 'openai',
+                'strength': 'Gaming expertise and strategic analysis'
             }
         }
         

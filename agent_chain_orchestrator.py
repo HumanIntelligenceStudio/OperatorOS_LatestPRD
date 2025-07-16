@@ -198,7 +198,23 @@ class AgentChainOrchestrator:
             
             User Query: {query}
             
-            Provide a detailed financial advisory analysis and recommendations. Use clear financial planning reasoning and include specific actionable financial steps."""
+            Provide a detailed financial advisory analysis and recommendations. Use clear financial planning reasoning and include specific actionable financial steps.""",
+            
+            'Gaming_Expert': """You are a Gaming Expert AI agent with expertise in competitive gaming, deck building, and strategic analysis.
+            
+            Your role is to provide comprehensive gaming perspective on the user's query. Focus on:
+            - Competitive gaming strategies and meta analysis
+            - Deck building and card game optimization
+            - Tournament preparation and competitive play
+            - Game balance and strategic considerations
+            - Player psychology and mindset
+            - Gaming trends and community insights
+            
+            Context from previous agents: {context}
+            
+            User Query: {query}
+            
+            Provide a detailed gaming analysis and strategic recommendations. Use clear gaming logic and include specific actionable gaming strategies."""
         }
     
     def process_chain(self, query: str, agent_chain: List[str], 
