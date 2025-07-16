@@ -8,6 +8,9 @@ OperatorOS is a comprehensive AI-powered goal achievement platform that combines
 
 Preferred communication style: Simple, everyday language.
 
+## User Goal
+Primary objective: Achieve financial independence using AI expertise and the OperatorOS platform. Focus on monetizing the platform and AI skills to create sustainable revenue streams.
+
 ## System Architecture
 
 ### Backend Architecture
