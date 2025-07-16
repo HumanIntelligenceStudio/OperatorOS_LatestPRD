@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional, List
 from openai import OpenAI
 import anthropic
 from anthropic import Anthropic
+from token_limiter import token_limiter
 
 # <important_code_snippet_instructions>
 # The newest OpenAI model is "gpt-4o", not "gpt-4". 
@@ -70,13 +71,24 @@ class AIProviderManager:
     
     def generate_response(self, prompt: str, provider: str = None, task_type: str = "general", 
                          model: str = None, max_tokens: int = 1000) -> Dict[str, Any]:
-        """Generate AI response with intelligent routing"""
+        """Generate AI response with intelligent routing and token limiting"""
         try:
             if not provider:
                 provider = self.get_best_provider(task_type)
             
             if provider not in self.providers:
                 raise Exception(f"Provider {provider} not available")
+            
+            # Check and truncate prompt if necessary
+            if not token_limiter.is_within_limits(prompt, provider):
+                logging.warning(f"Prompt exceeds limits for {provider}. Truncating...")
+                # For single prompt, treat as user context
+                _, truncated_prompt, _, was_truncated = token_limiter.truncate_prompt(
+                    system_prompt="", user_context=prompt, query="", provider=provider
+                )
+                if was_truncated:
+                    logging.info(f"Prompt truncated for {provider}")
+                prompt = truncated_prompt
             
             start_time = datetime.now()
             

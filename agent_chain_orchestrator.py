@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from ai_providers import ai_manager
 from query_analyzer import query_analyzer
+from token_limiter import token_limiter
 
 @dataclass
 class AgentResponse:
@@ -232,9 +233,18 @@ class AgentChainOrchestrator:
                 if agent_type == 'SYNTHESIZER':
                     continue  # Skip synthesizer in main chain, handle separately
                 
+                # Get optimal provider for this agent type
+                capabilities = query_analyzer.get_agent_capabilities(agent_type)
+                optimal_provider = capabilities.get('optimal_provider', 'grok')
+                
+                # Apply context management with token limiting
+                managed_context = self._manage_context(
+                    accumulated_context, agent_type, query, optimal_provider
+                )
+                
                 # Generate response from current agent
                 agent_response = self._generate_agent_response(
-                    agent_type, query, accumulated_context
+                    agent_type, query, managed_context
                 )
                 
                 if agent_response:
@@ -242,8 +252,14 @@ class AgentChainOrchestrator:
                     total_tokens += agent_response.tokens_used
                     total_cost += agent_response.cost
                     
-                    # Update context for next agent
-                    accumulated_context += f"\n\n{agent_response.agent_type} Perspective:\n{agent_response.content}"
+                    # Update context for next agent with sliding window
+                    new_context = f"\n\n{agent_response.agent_type} Perspective:\n{agent_response.content}"
+                    accumulated_context += new_context
+                    
+                    # Apply sliding window to keep context manageable
+                    accumulated_context = token_limiter.truncate_context_sliding_window(
+                        accumulated_context, optimal_provider, max_context_tokens=8000
+                    )
                     
                     logging.info(f"Agent {agent_type} completed. Tokens: {agent_response.tokens_used}, Cost: ${agent_response.cost:.4f}")
                 else:
@@ -287,18 +303,61 @@ class AgentChainOrchestrator:
                 perspectives_covered=[]
             )
     
+    def _manage_context(self, accumulated_context: str, agent_type: str, 
+                       query: str, provider: str) -> str:
+        """Manage context size with intelligent truncation"""
+        try:
+            # Get agent system prompt
+            system_prompt = self.agent_prompts.get(agent_type, "")
+            
+            # Truncate using token limiter
+            truncated_system, truncated_context, truncated_query, was_truncated = \
+                token_limiter.truncate_prompt(
+                    system_prompt=system_prompt,
+                    user_context=accumulated_context,
+                    query=query,
+                    provider=provider
+                )
+            
+            if was_truncated:
+                logging.warning(f"Context truncated for {agent_type} ({provider})")
+            
+            return truncated_context
+            
+        except Exception as e:
+            logging.error(f"Context management failed for {agent_type}: {str(e)}")
+            # Return sliding window fallback
+            return token_limiter.truncate_context_sliding_window(
+                accumulated_context, provider, max_context_tokens=4000
+            )
+    
     def _generate_agent_response(self, agent_type: str, query: str, 
                                context: str) -> Optional[AgentResponse]:
         """Generate response from a specific agent"""
         try:
             # Get agent capabilities and optimal provider
             capabilities = query_analyzer.get_agent_capabilities(agent_type)
-            optimal_provider = capabilities.get('optimal_provider', 'anthropic')
+            optimal_provider = capabilities.get('optimal_provider', 'grok')
             
-            # Construct agent prompt
+            # Construct agent prompt with token limiting
             if agent_type in self.agent_prompts:
-                prompt = self.agent_prompts[agent_type].format(
-                    context=context, query=query
+                system_prompt = self.agent_prompts[agent_type]
+                
+                # Apply intelligent truncation
+                truncated_system, truncated_context, truncated_query, was_truncated = \
+                    token_limiter.truncate_prompt(
+                        system_prompt=system_prompt,
+                        user_context=context,
+                        query=query,
+                        provider=optimal_provider
+                    )
+                
+                if was_truncated:
+                    logging.warning(f"Prompt truncated for {agent_type}")
+                
+                # Format the final prompt
+                prompt = truncated_system.format(
+                    context=truncated_context, query=truncated_query
                 )
             else:
                 # Fallback prompt for unknown agents
