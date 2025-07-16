@@ -222,43 +222,50 @@ class ServiceTemplateSystem:
                     "name": "Business Strategy Consulting",
                     "category": "business_consulting",
                     "description": "Comprehensive business strategy development and implementation",
-                    "price": 5000.0,
+                    "base_price": 5000.0,
                     "automation_level": "semi-automated"
                 },
                 {
                     "name": "Digital Marketing Audit",
                     "category": "marketing_strategy",
                     "description": "Complete digital marketing analysis and optimization recommendations",
-                    "price": 2500.0,
+                    "base_price": 2500.0,
                     "automation_level": "automated"
                 },
                 {
                     "name": "Financial Planning & Analysis",
                     "category": "financial_planning",
                     "description": "Personal and business financial planning services",
-                    "price": 3500.0,
+                    "base_price": 3500.0,
                     "automation_level": "semi-automated"
                 },
                 {
                     "name": "Website Development & Optimization",
                     "category": "tech_solutions",
                     "description": "Custom website development and performance optimization",
-                    "price": 4500.0,
+                    "base_price": 4500.0,
                     "automation_level": "manual"
                 },
                 {
                     "name": "Content Creation Package",
                     "category": "content_creation",
                     "description": "Professional content creation for marketing and communications",
-                    "price": 2000.0,
+                    "base_price": 2000.0,
                     "automation_level": "automated"
                 },
                 {
                     "name": "Business Process Automation",
                     "category": "automation_services",
                     "description": "Workflow automation and efficiency optimization",
-                    "price": 6000.0,
+                    "base_price": 6000.0,
                     "automation_level": "automated"
+                },
+                {
+                    "name": "AI Implementation & Integration Consulting",
+                    "category": "tech_solutions",
+                    "description": "Complete AI solution implementation for businesses - from strategy to deployment",
+                    "base_price": 5000.0,
+                    "automation_level": "semi-automated"
                 }
             ]
             
