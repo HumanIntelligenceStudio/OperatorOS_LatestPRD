@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}OperatorOS - Universal Goal Achievement Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-5 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-brain text-primary"></i>
+                    Universal Goal Achievement Platform
+                </h1>
+                <p class="lead mb-4">
+                    Harness the power of multiple AI providers to achieve any goal. 
+                    Get specialized AI experts, automated business processes, and professional insights.
+                </p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        <i class="fas fa-rocket"></i> Get Started
+                    </a>
+                    <a href="#features" class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="fas fa-info-circle"></i> Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-5 fw-bold">Powerful AI-Driven Features</h2>
+                <p class="lead">Everything you need to achieve your goals with AI assistance</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-robot fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Multi-AI Integration</h5>
+                        <p class="card-text">
+                            Access OpenAI, Anthropic, and Grok AI models with intelligent routing 
+                            for optimal task completion.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-target fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title">Goal Achievement System</h5>
+                        <p class="card-text">
+                            Break down any goal into actionable tasks with AI-powered 
+                            progress tracking and insights.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-chart-line fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="card-title">Financial Analysis</h5>
+                        <p class="card-text">
+                            CFO-level financial insights with bank data processing 
+                            and investment recommendations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-cogs fa-3x text-info"></i>
+                        </div>
+                        <h5 class="card-title">Business Automation</h5>
+                        <p class="card-text">
+                            Automated client acquisition, service delivery, and revenue 
+                            optimization processes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-briefcase fa-3x text-danger"></i>
+                        </div>
+                        <h5 class="card-title">Professional Services</h5>
+                        <p class="card-text">
+                            AI-generated service templates and proposals for any 
+                            professional domain.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-tachometer-alt fa-3x text-secondary"></i>
+                        </div>
+                        <h5 class="card-title">Real-time Analytics</h5>
+                        <p class="card-text">
+                            Comprehensive dashboards with performance monitoring 
+                            and detailed insights.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-5 bg-dark rounded-3 my-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-12">
+                    <h2 class="display-5 fw-bold text-white">How It Works</h2>
+                    <p class="lead text-light">Simple steps to achieve any goal</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-3 text-center">
+                    <div class="step-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3 fs-4">1</span>
+                    </div>
+                    <h5 class="text-white">Define Your Goal</h5>
+                    <p class="text-light">Tell us what you want to achieve</p>
+                </div>
+                
+                <div class="col-md-3 text-center">
+                    <div class="step-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3 fs-4">2</span>
+                    </div>
+                    <h5 class="text-white">AI Analysis</h5>
+                    <p class="text-light">Our AI breaks it down into actionable tasks</p>
+                </div>
+                
+                <div class="col-md-3 text-center">
+                    <div class="step-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3 fs-4">3</span>
+                    </div>
+                    <h5 class="text-white">Take Action</h5>
+                    <p class="text-light">Follow the AI-generated action plan</p>
+                </div>
+                
+                <div class="col-md-3 text-center">
+                    <div class="step-number mb-3">
+                        <span class="badge bg-primary rounded-circle p-3 fs-4">4</span>
+                    </div>
+                    <h5 class="text-white">Achieve Success</h5>
+                    <p class="text-light">Track progress and optimize with AI insights</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="text-center py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold mb-4">Ready to Achieve Your Goals?</h2>
+                <p class="lead mb-4">Join thousands of users who are already achieving more with AI assistance.</p>
+                <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i> Start Your Journey
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

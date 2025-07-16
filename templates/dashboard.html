@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - OperatorOS{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+    {% else %}
+        <!-- Welcome Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 bg-primary text-white">
+                    <div class="card-body">
+                        <h1 class="card-title mb-3">
+                            <i class="fas fa-tachometer-alt"></i> Welcome back, {{ current_user.first_name or 'User' }}!
+                        </h1>
+                        <p class="card-text">Your AI-powered goal achievement platform is ready to help you succeed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-target fa-2x text-primary mb-2"></i>
+                        <h3 class="card-title">{{ total_goals or 0 }}</h3>
+                        <p class="card-text text-muted">Total Goals</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tasks fa-2x text-success mb-2"></i>
+                        <h3 class="card-title">{{ active_goals or 0 }}</h3>
+                        <p class="card-text text-muted">Active Goals</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-2x text-warning mb-2"></i>
+                        <h3 class="card-title">{{ completed_goals or 0 }}</h3>
+                        <p class="card-text text-muted">Completed Goals</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-percentage fa-2x text-info mb-2"></i>
+                        <h3 class="card-title">{{ "%.1f"|format(average_progress or 0) }}%</h3>
+                        <p class="card-text text-muted">Avg Progress</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Row -->
+        <div class="row">
+            <!-- Goals Overview -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-target"></i> Your Goals
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if goals %}
+                            {% for goal in goals[:5] %}
+                                <div class="goal-item mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ goal.title }}</h6>
+                                            <p class="text-muted mb-2">{{ goal.description[:100] }}...</p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar"></i> 
+                                                Target: {{ goal.target_date.strftime('%B %d, %Y') if goal.target_date else 'No deadline' }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="progress mb-2" style="width: 100px;">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {{ goal.completion_percentage }}%"
+                                                     aria-valuenow="{{ goal.completion_percentage }}" 
+                                                     aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">{{ goal.completion_percentage }}%</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if not loop.last %}<hr>{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-target fa-3x text-muted mb-3"></i>
+                                <h5>No goals yet</h5>
+                                <p class="text-muted">Create your first goal to get started with AI-powered achievement.</p>
+                                <a href="{{ url_for('goals') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Create Goal
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if goals %}
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ url_for('goals') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-right"></i> View All Goals
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- AI Chat Interface -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-robot"></i> AI Assistant
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="aiChatForm" class="mb-3">
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <select class="form-select" id="taskType" name="task_type">
+                                        <option value="general">General</option>
+                                        <option value="planning">Planning</option>
+                                        <option value="analysis">Analysis</option>
+                                        <option value="creative">Creative</option>
+                                        <option value="financial">Financial</option>
+                                        <option value="coding">Coding</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <select class="form-select" id="aiProvider" name="provider">
+                                        <option value="auto">Auto (Best for task)</option>
+                                        <option value="openai">OpenAI</option>
+                                        <option value="anthropic">Anthropic</option>
+                                        <option value="grok">Grok</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control" id="aiPrompt" name="prompt" 
+                                         rows="3" placeholder="Ask me anything... I can help you achieve your goals!"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                        </form>
+                        
+                        <div id="aiResponse" class="d-none">
+                            <div class="alert alert-info">
+                                <div class="d-flex justify-content-between">
+                                    <strong>AI Response:</strong>
+                                    <small class="text-muted">Provider: <span id="responseProvider"></span></small>
+                                </div>
+                                <div id="responseContent" class="mt-2"></div>
+                                <div class="mt-3">
+                                    <small class="text-muted">Rate this response:</small>
+                                    <div class="rating-stars" id="ratingStars">
+                                        <i class="fas fa-star" data-rating="1"></i>
+                                        <i class="fas fa-star" data-rating="2"></i>
+                                        <i class="fas fa-star" data-rating="3"></i>
+                                        <i class="fas fa-star" data-rating="4"></i>
+                                        <i class="fas fa-star" data-rating="5"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Quick Actions -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-bolt"></i> Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('goals') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus"></i> Create New Goal
+                            </a>
+                            <a href="{{ url_for('financial_analysis') }}" class="btn btn-outline-success">
+                                <i class="fas fa-upload"></i> Upload Bank Data
+                            </a>
+                            <a href="{{ url_for('service_templates_page') }}" class="btn btn-outline-info">
+                                <i class="fas fa-file-contract"></i> Generate Proposal
+                            </a>
+                            <button type="button" class="btn btn-outline-warning" onclick="runAutomation('client_acquisition')">
+                                <i class="fas fa-users"></i> Find Clients
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Tasks -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clock"></i> Recent Tasks
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_tasks %}
+                            {% for task in recent_tasks[:5] %}
+                                <div class="task-item mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <small class="text-muted d-block">{{ task.goal.title }}</small>
+                                            <span class="task-title">{{ task.title }}</span>
+                                        </div>
+                                        {% if not task.completed %}
+                                            <a href="{{ url_for('complete_task', task_id=task.id) }}" 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                        {% else %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if not loop.last %}<hr>{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-3">
+                                <i class="fas fa-tasks fa-2x text-muted mb-2"></i>
+                                <p class="text-muted">No tasks yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Automation Data -->
+        {% if automation_data %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-cogs"></i> Business Automation
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-primary">{{ automation_data.total_processes }}</h4>
+                                        <small class="text-muted">Active Processes</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-success">${{ "%.2f"|format(automation_data.total_revenue) }}</h4>
+                                        <small class="text-muted">Revenue Generated</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-warning">{{ "%.1f"|format(automation_data.average_success_rate * 100) }}%</h4>
+                                        <small class="text-muted">Success Rate</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <button class="btn btn-primary" onclick="runAutomation('revenue_optimization')">
+                                            <i class="fas fa-chart-line"></i> Optimize Revenue
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Business Automation Modal -->
+<div class="modal fade" id="automationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Business Automation Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="automationResults">
+                <!-- Results will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// AI Chat functionality
+document.getElementById('aiChatForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const button = this.querySelector('button[type="submit"]');
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Thinking...';
+    
+    fetch('/ai_chat', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('responseProvider').textContent = data.provider;
+            document.getElementById('responseContent').innerHTML = data.response.replace(/\n/g, '<br>');
+            document.getElementById('aiResponse').classList.remove('d-none');
+            
+            // Set up rating functionality
+            const stars = document.querySelectorAll('#ratingStars i');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = this.getAttribute('data-rating');
+                    rateResponse(data.conversation_id, rating);
+                });
+            });
+            
+            document.getElementById('aiPrompt').value = '';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while processing your request.');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-paper-plane"></i> Send';
+    });
+});
+
+// Rating functionality
+function rateResponse(conversationId, rating) {
+    const formData = new FormData();
+    formData.append('conversation_id', conversationId);
+    formData.append('rating', rating);
+    
+    fetch('/rate_response', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update star display
+            const stars = document.querySelectorAll('#ratingStars i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('text-warning');
+                } else {
+                    star.classList.remove('text-warning');
+                }
+            });
+        }
+    });
+}
+
+// Business automation
+function runAutomation(type) {
+    const formData = new FormData();
+    formData.append('automation_type', type);
+    
+    fetch('/run_automation', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let resultsHtml = '<div class="alert alert-success"><h6>Automation Completed Successfully!</h6>';
+            
+            if (data.results) {
+                resultsHtml += '<ul class="mb-0">';
+                for (const [key, value] of Object.entries(data.results)) {
+                    resultsHtml += `<li>${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${value}</li>`;
+                }
+                resultsHtml += '</ul>';
+            }
+            
+            resultsHtml += '</div>';
+            
+            if (data.strategy || data.fulfillment_plan || data.optimization_strategy) {
+                resultsHtml += '<div class="mt-3"><h6>AI Strategy:</h6>';
+                resultsHtml += '<div class="alert alert-info">' + (data.strategy || data.fulfillment_plan || data.optimization_strategy) + '</div></div>';
+            }
+            
+            document.getElementById('automationResults').innerHTML = resultsHtml;
+            new bootstrap.Modal(document.getElementById('automationModal')).show();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+</script>
+{% endblock %}

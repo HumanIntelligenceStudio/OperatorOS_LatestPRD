@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - OperatorOS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+    {% else %}
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="display-6">
+                    <i class="fas fa-cogs"></i> Admin Dashboard
+                </h1>
+                <p class="lead">System overview and management controls</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-primary" onclick="generateReport()">
+                    <i class="fas fa-chart-bar"></i> Generate Report
+                </button>
+            </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-heartbeat"></i> System Health
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-database fa-2x text-{{ 'success' if system_health.database else 'danger' }} me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">Database</h6>
+                                        <small class="text-muted">{{ 'Connected' if system_health.database else 'Disconnected' }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-robot fa-2x text-{{ 'success' if system_health.ai_providers else 'danger' }} me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">AI Providers</h6>
+                                        <small class="text-muted">{{ 'Available' if system_health.ai_providers else 'Unavailable' }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-{{ 'warning' if system_health.error_count_24h > 5 else 'success' }} me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">Errors (24h)</h6>
+                                        <small class="text-muted">{{ system_health.error_count_24h }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-circle fa-2x text-{{ 'success' if system_health.status == 'healthy' else 'warning' if system_health.status == 'degraded' else 'danger' }} me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">Overall Status</h6>
+                                        <small class="text-muted">{{ system_health.status.title() }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">{{ users.total }}</h3>
+                        <p class="card-text">Total Users</p>
+                        <small class="text-muted">+{{ users.new_today }} today</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-target fa-3x text-success mb-3"></i>
+                        <h3 class="card-title">{{ goals.total }}</h3>
+                        <p class="card-text">Total Goals</p>
+                        <small class="text-muted">{{ "%.1f"|format(goals.completion_rate) }}% completion rate</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-robot fa-3x text-info mb-3"></i>
+                        <h3 class="card-title">{{ ai_usage.total_conversations }}</h3>
+                        <p class="card-text">AI Conversations</p>
+                        <small class="text-muted">{{ ai_usage.conversations_today }} today</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-dollar-sign fa-3x text-warning mb-3"></i>
+                        <h3 class="card-title">${{ "%.2f"|format(business_processes.total_revenue) }}</h3>
+                        <p class="card-text">Revenue Generated</p>
+                        <small class="text-muted">{{ business_processes.active }} active processes</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line"></i> User Growth
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="userGrowthChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-pie"></i> AI Provider Usage
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="providerChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Tables -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar"></i> AI Usage Statistics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Usage</th>
+                                        <th>Distribution</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for provider, count in ai_usage.provider_distribution.items() %}
+                                        <tr>
+                                            <td>{{ provider.title() }}</td>
+                                            <td>{{ count }}</td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" 
+                                                         style="width: {{ (count / ai_usage.total_conversations * 100)|int }}%">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-credit-card"></i> Payment Statistics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-primary">{{ payments.total }}</h4>
+                                <small class="text-muted">Total Payments</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-success">${{ "%.2f"|format(payments.total_amount) }}</h4>
+                                <small class="text-muted">Total Amount</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-warning">{{ payments.successful }}</h4>
+                                <small class="text-muted">Successful</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-info">{{ "%.1f"|format(payments.success_rate) }}%</h4>
+                                <small class="text-muted">Success Rate</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Templates -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-briefcase"></i> Service Templates Performance
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <h4 class="text-primary">{{ service_templates.total }}</h4>
+                                <small class="text-muted">Total Templates</small>
+                            </div>
+                            <div class="col-md-4">
+                                <h4 class="text-success">{{ service_templates.usage_count }}</h4>
+                                <small class="text-muted">Total Usage</small>
+                            </div>
+                            <div class="col-md-4">
+                                <h4 class="text-info">{{ (service_templates.usage_count / service_templates.total)|int if service_templates.total > 0 else 0 }}</h4>
+                                <small class="text-muted">Avg Usage per Template</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-bar"></i> System Report
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="reportContent">
+                <!-- Report content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// User Growth Chart
+const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+const userGrowthChart = new Chart(userGrowthCtx, {
+    type: 'line',
+    data: {
+        labels: ['7 days ago', '6 days ago', '5 days ago', '4 days ago', '3 days ago', '2 days ago', 'Yesterday', 'Today'],
+        datasets: [{
+            label: 'New Users',
+            data: [12, 19, 3, 5, 2, 3, 7, {{ users.new_today }}],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Provider Usage Chart
+const providerCtx = document.getElementById('providerChart').getContext('2d');
+const providerChart = new Chart(providerCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for provider in ai_usage.provider_distribution.keys() %}'{{ provider.title() }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for count in ai_usage.provider_distribution.values() %}{{ count }}{% if not loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Generate Report Function
+function generateReport() {
+    const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+    const content = document.getElementById('reportContent');
+    
+    content.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Generating comprehensive report...</p></div>';
+    modal.show();
+    
+    fetch('/admin/report')
+        .then(response => response.json())
+        .then(data => {
+            if (data.ai_insights) {
+                content.innerHTML = `
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-brain"></i> AI Executive Summary</h6>
+                        <div class="mt-2">${data.ai_insights.replace(/\n/g, '<br>')}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-users"></i> User Analytics</h6>
+                            <ul class="list-unstyled">
+                                <li>Total Users: ${data.overview.users.total}</li>
+                                <li>New Today: ${data.overview.users.new_today}</li>
+                                <li>Growth Rate: ${data.overview.users.growth_rate}%</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-dollar-sign"></i> Revenue Analytics</h6>
+                            <ul class="list-unstyled">
+                                <li>Process Revenue: $${data.revenue_analytics.process_revenue}</li>
+                                <li>Payment Revenue: $${data.revenue_analytics.payment_revenue}</li>
+                                <li>Total Revenue: $${data.revenue_analytics.total_revenue}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h6><i class="fas fa-robot"></i> AI Usage Summary</h6>
+                        <ul class="list-unstyled">
+                            <li>Total Conversations: ${data.ai_analytics.total_conversations}</li>
+                            <li>Total Cost: $${data.ai_analytics.total_cost}</li>
+                            <li>Average Clarity: ${data.ai_analytics.average_clarity}/5</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = '<div class="alert alert-danger">Error generating report</div>';
+            }
+        })
+        .catch(error => {
+            content.innerHTML = '<div class="alert alert-danger">Error loading report</div>';
+        });
+}
+</script>
+{% endblock %}

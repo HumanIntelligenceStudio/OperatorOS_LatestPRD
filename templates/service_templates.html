@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}Service Templates - OperatorOS{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+    {% else %}
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="display-6">
+                    <i class="fas fa-briefcase"></i> Service Templates
+                </h1>
+                <p class="lead">AI-generated professional service templates and proposals</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
+                    <i class="fas fa-plus"></i> Create Template
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-contract fa-2x text-primary mb-3"></i>
+                        <h4 class="card-title">{{ total_templates or 0 }}</h4>
+                        <p class="card-text">Total Templates</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                        <h4 class="card-title">{{ total_usage or 0 }}</h4>
+                        <p class="card-text">Total Usage</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-dollar-sign fa-2x text-warning mb-3"></i>
+                        <h4 class="card-title">${{ "%.2f"|format(average_price or 0) }}</h4>
+                        <p class="card-text">Average Price</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Categories -->
+        {% if catalog %}
+            {% for category, templates in catalog.items() %}
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <h3 class="mb-3">
+                            <i class="fas fa-folder"></i> {{ categories.get(category, category.title().replace('_', ' ')) }}
+                        </h3>
+                        <div class="row">
+                            {% for template in templates %}
+                                <div class="col-lg-4 col-md-6 mb-4">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-header bg-transparent">
+                                            <h6 class="card-title mb-0">{{ template.name }}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text">{{ template.description }}</p>
+                                            
+                                            <div class="row text-center mb-3">
+                                                <div class="col-6">
+                                                    <small class="text-muted d-block">Price</small>
+                                                    <strong>${{ "%.2f"|format(template.price) }}</strong>
+                                                </div>
+                                                <div class="col-6">
+                                                    <small class="text-muted d-block">Usage</small>
+                                                    <strong>{{ template.usage_count }}</strong>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-2">
+                                                <span class="badge bg-{{ 'success' if template.automation_level == 'automated' else 'warning' if template.automation_level == 'semi-automated' else 'secondary' }}">
+                                                    {{ template.automation_level.title().replace('_', ' ') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-transparent">
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary btn-sm" 
+                                                        onclick="generateProposal({{ template.id }}, '{{ template.name }}')">
+                                                    <i class="fas fa-file-alt"></i> Generate Proposal
+                                                </button>
+                                                <button class="btn btn-outline-info btn-sm" 
+                                                        onclick="viewTemplate({{ template.id }})">
+                                                    <i class="fas fa-eye"></i> View Template
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-briefcase fa-4x text-muted mb-4"></i>
+                <h3>No service templates available</h3>
+                <p class="lead text-muted">Create your first service template to get started.</p>
+                <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
+                    <i class="fas fa-plus"></i> Create Template
+                </button>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Create Template Modal -->
+<div class="modal fade" id="createTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus"></i> Create Service Template
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTemplateForm">
+                    <div class="mb-3">
+                        <label for="templateName" class="form-label">Service Name *</label>
+                        <input type="text" class="form-control" id="templateName" name="name" 
+                               placeholder="e.g., Business Strategy Consulting" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="templateCategory" class="form-label">Category *</label>
+                        <select class="form-select" id="templateCategory" name="category" required>
+                            <option value="">Select Category</option>
+                            {% for key, value in categories.items() %}
+                                <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="templateDescription" class="form-label">Description *</label>
+                        <textarea class="form-control" id="templateDescription" name="description" 
+                                  rows="3" placeholder="Describe the service offering..." required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="templatePrice" class="form-label">Base Price ($)</label>
+                            <input type="number" class="form-control" id="templatePrice" name="price" 
+                                   min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="automationLevel" class="form-label">Automation Level</label>
+                            <select class="form-select" id="automationLevel" name="automation_level">
+                                <option value="manual">Manual</option>
+                                <option value="semi-automated">Semi-Automated</option>
+                                <option value="automated">Automated</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>AI Enhancement:</strong> The template content will be automatically generated by AI based on your inputs.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createTemplate()">
+                    <i class="fas fa-plus"></i> Create Template
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Proposal Modal -->
+<div class="modal fade" id="proposalModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-alt"></i> Generate Proposal
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="proposalForm">
+                    <input type="hidden" id="proposalTemplateId" name="template_id">
+                    <div class="mb-3">
+                        <label for="clientName" class="form-label">Client Name *</label>
+                        <input type="text" class="form-control" id="clientName" name="client_name" 
+                               placeholder="Enter client or company name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="projectDetails" class="form-label">Project Details *</label>
+                        <textarea class="form-control" id="projectDetails" name="project_details" 
+                                  rows="4" placeholder="Describe the project requirements, goals, and specific needs..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="budgetRange" class="form-label">Budget Range (Optional)</label>
+                        <input type="text" class="form-control" id="budgetRange" name="budget_range" 
+                               placeholder="e.g., $5,000 - $10,000">
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-robot"></i>
+                        <strong>AI Generation:</strong> Our AI will create a customized, professional proposal based on your inputs and the selected template.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitProposal()">
+                    <i class="fas fa-magic"></i> Generate Proposal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Template Modal -->
+<div class="modal fade" id="viewTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye"></i> Template Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="templateContent">
+                <!-- Template content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Proposal Results Modal -->
+<div class="modal fade" id="proposalResultsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-alt"></i> Generated Proposal
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="proposalResults">
+                <!-- Proposal results will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="downloadProposal()">
+                    <i class="fas fa-download"></i> Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Create Template
+function createTemplate() {
+    const form = document.getElementById('createTemplateForm');
+    const formData = new FormData(form);
+    
+    // This would need a corresponding route in routes.py
+    alert('Template creation feature will be implemented in the backend.');
+}
+
+// Generate Proposal
+function generateProposal(templateId, templateName) {
+    document.getElementById('proposalTemplateId').value = templateId;
+    document.querySelector('#proposalModal .modal-title').innerHTML = `
+        <i class="fas fa-file-alt"></i> Generate Proposal - ${templateName}
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('proposalModal'));
+    modal.show();
+}
+
+// Submit Proposal
+function submitProposal() {
+    const form = document.getElementById('proposalForm');
+    const formData = new FormData(form);
+    
+    // Close proposal modal
+    bootstrap.Modal.getInstance(document.getElementById('proposalModal')).hide();
+    
+    // Show results modal with loading
+    const resultsModal = new bootstrap.Modal(document.getElementById('proposalResultsModal'));
+    document.getElementById('proposalResults').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">AI is generating your proposal...</p>
+        </div>
+    `;
+    resultsModal.show();
+    
+    fetch('/generate_proposal', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('proposalResults').innerHTML = `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle"></i> Proposal Generated Successfully!</h6>
+                    <p>Client: ${data.client_name}</p>
+                    <p>Provider: ${data.provider}</p>
+                </div>
+                <div class="proposal-content">
+                    <div class="card">
+                        <div class="card-body">
+                            <pre style="white-space: pre-wrap; font-family: inherit;">${data.proposal}</pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            document.getElementById('proposalResults').innerHTML = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
+                    <p>Unable to generate proposal: ${data.error}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        document.getElementById('proposalResults').innerHTML = `
+            <div class="alert alert-danger">
+                <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
+                <p>An error occurred while generating the proposal.</p>
+            </div>
+        `;
+    });
+}
+
+// View Template
+function viewTemplate(templateId) {
+    const modal = new bootstrap.Modal(document.getElementById('viewTemplateModal'));
+    document.getElementById('templateContent').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Loading template...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // This would need a corresponding route in routes.py
+    // For now, showing placeholder
+    setTimeout(() => {
+        document.getElementById('templateContent').innerHTML = `
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Template Viewer</h6>
+                <p>Template viewing feature will be implemented in the backend.</p>
+                <p>This will show the full template content, usage statistics, and customization options.</p>
+            </div>
+        `;
+    }, 1000);
+}
+
+// Download Proposal
+function downloadProposal() {
+    // This would implement PDF generation
+    alert('PDF download feature will be implemented.');
+}
+</script>
+{% endblock %}

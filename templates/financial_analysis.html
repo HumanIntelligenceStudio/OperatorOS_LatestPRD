@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Analysis - OperatorOS{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+    {% else %}
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="display-6">
+                    <i class="fas fa-chart-line"></i> Financial Analysis
+                </h1>
+                <p class="lead">CFO-level insights and bank data processing</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="fas fa-upload"></i> Upload Bank Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-arrow-up fa-2x text-success mb-3"></i>
+                        <h4 class="card-title">${{ "%.2f"|format(total_income or 0) }}</h4>
+                        <p class="card-text">Total Income</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-arrow-down fa-2x text-danger mb-3"></i>
+                        <h4 class="card-title">${{ "%.2f"|format(total_expenses or 0) }}</h4>
+                        <p class="card-text">Total Expenses</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-balance-scale fa-2x text-{{ 'success' if net_income and net_income > 0 else 'warning' }} mb-3"></i>
+                        <h4 class="card-title">${{ "%.2f"|format(net_income or 0) }}</h4>
+                        <p class="card-text">Net Income</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-database fa-2x text-info mb-3"></i>
+                        <h4 class="card-title">{{ data_points or 0 }}</h4>
+                        <p class="card-text">Data Points</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line"></i> Monthly Trends
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="monthlyTrendsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-pie"></i> Expense Categories
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="categoryChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Analysis -->
+        {% if latest_analysis %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-brain"></i> AI Financial Analysis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="analysis-content">
+                                {{ latest_analysis|safe }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Action Cards -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar"></i> Investment Recommendations
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Get personalized investment recommendations based on your financial profile.</p>
+                        <button class="btn btn-primary" onclick="getInvestmentRecommendations()">
+                            <i class="fas fa-lightbulb"></i> Get Recommendations
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-plane"></i> Digital Nomad Readiness
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Assess your financial readiness for the digital nomad lifestyle.</p>
+                        <button class="btn btn-success" onclick="getNomadReadiness()">
+                            <i class="fas fa-globe"></i> Check Readiness
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        {% if category_breakdown %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-list"></i> Expense Breakdown
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Amount</th>
+                                            <th>Percentage</th>
+                                            <th>Visual</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for category, amount in category_breakdown.items() %}
+                                            <tr>
+                                                <td>{{ category.title().replace('_', ' ') }}</td>
+                                                <td>${{ "%.2f"|format(amount) }}</td>
+                                                <td>{{ "%.1f"|format((amount / total_expenses * 100) if total_expenses > 0 else 0) }}%</td>
+                                                <td>
+                                                    <div class="progress" style="height: 20px;">
+                                                        <div class="progress-bar" 
+                                                             style="width: {{ (amount / total_expenses * 100)|int if total_expenses > 0 else 0 }}%">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload"></i> Upload Bank Data
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('upload_bank_data') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="bankFile" class="form-label">CSV File</label>
+                        <input type="file" class="form-control" id="bankFile" name="file" accept=".csv" required>
+                        <div class="form-text">Upload a CSV file with your bank statement data.</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> CSV Format Requirements:</h6>
+                        <ul class="mb-0">
+                            <li>Column 1: Date (YYYY-MM-DD)</li>
+                            <li>Column 2: Description</li>
+                            <li>Column 3: Amount (negative for expenses)</li>
+                            <li>Column 4: Category (optional)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Upload & Analyze
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Results Modal -->
+<div class="modal fade" id="analysisModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-bar"></i> AI Analysis Results
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="analysisContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Monthly Trends Chart
+{% if monthly_trends %}
+const monthlyCtx = document.getElementById('monthlyTrendsChart').getContext('2d');
+const monthlyChart = new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for month in monthly_trends.keys() %}'{{ month }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Income',
+            data: [{% for data in monthly_trends.values() %}{{ data.income }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }, {
+            label: 'Expenses',
+            data: [{% for data in monthly_trends.values() %}{{ data.expenses }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: true,
+                text: 'Monthly Income vs Expenses'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+{% endif %}
+
+// Category Chart
+{% if category_breakdown %}
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for category in category_breakdown.keys() %}'{{ category.title().replace("_", " ") }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for amount in category_breakdown.values() %}{{ amount }}{% if not loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+{% endif %}
+
+// Investment Recommendations
+function getInvestmentRecommendations() {
+    showAnalysisModal('Getting investment recommendations...');
+    
+    fetch('/investment_recommendations')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('analysisContent').innerHTML = `
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-brain"></i> AI Investment Analysis (Provider: ${data.provider})</h6>
+                        <div class="mt-2">${data.recommendations.replace(/\n/g, '<br>')}</div>
+                    </div>
+                `;
+            } else {
+                document.getElementById('analysisContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
+                        <p>Unable to generate recommendations: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('analysisContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
+                    <p>An error occurred while fetching recommendations.</p>
+                </div>
+            `;
+        });
+}
+
+// Digital Nomad Readiness
+function getNomadReadiness() {
+    showAnalysisModal('Assessing digital nomad readiness...');
+    
+    // This would need a corresponding route in routes.py
+    // For now, showing a placeholder
+    document.getElementById('analysisContent').innerHTML = `
+        <div class="alert alert-info">
+            <h6><i class="fas fa-plane"></i> Digital Nomad Assessment</h6>
+            <p>This feature analyzes your financial data to determine your readiness for the digital nomad lifestyle.</p>
+            <p>Based on your financial profile, we'll provide:</p>
+            <ul>
+                <li>Readiness score (1-10)</li>
+                <li>Recommended savings targets</li>
+                <li>Location-specific budget recommendations</li>
+                <li>Income diversification strategies</li>
+            </ul>
+            <p><em>Feature coming soon!</em></p>
+        </div>
+    `;
+}
+
+function showAnalysisModal(loadingText) {
+    const modal = new bootstrap.Modal(document.getElementById('analysisModal'));
+    const content = document.getElementById('analysisContent');
+    
+    content.innerHTML = `<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">${loadingText}</p></div>`;
+    modal.show();
+}
+</script>
+{% endblock %}
