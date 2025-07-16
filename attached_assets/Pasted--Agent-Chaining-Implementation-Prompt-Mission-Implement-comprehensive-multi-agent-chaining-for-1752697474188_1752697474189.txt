@@ -1,0 +1,183 @@
+# Agent Chaining Implementation Prompt
+
+## Mission: Implement comprehensive multi-agent chaining for holistic responses
+
+Transform the existing OperatorOS agent architecture to automatically break down user queries into multiple perspectives and chain the appropriate agents to deliver the most comprehensive answer possible.
+
+## Core Implementation Requirements
+
+### 1. **Create Query Analysis Engine**
+Build a new `query_analyzer.py` that:
+```python
+def analyze_user_query(user_input: str) -> Dict[str, Any]:
+    """
+    Analyze user query to identify what types of expertise are needed
+    
+    Returns:
+    {
+        "primary_domain": "business",
+        "required_perspectives": ["financial", "strategic", "operational", "risk"],
+        "complexity_level": "high",
+        "agent_chain": ["CFO", "CSA", "COO", "CRO"],
+        "synthesis_needed": True
+    }
+    """
+```
+
+### 2. **Build Agent Chain Orchestrator**
+Create `agent_chain_orchestrator.py` that:
+- **Sequences agents** based on query analysis
+- **Passes context** between agents in the chain
+- **Aggregates responses** from multiple agents
+- **Synthesizes final answer** with all perspectives
+- **Routes each agent** to optimal LLM automatically
+
+### 3. **Enhance Expert Factory for Multi-Domain**
+Extend `expert_factory.py` to:
+- **Generate multiple experts** for complex queries
+- **Create expert teams** on-demand (e.g., "divorce team" = lawyer + financial advisor + therapist)
+- **Route expert teams** to optimal LLMs based on specialization
+- **Chain expert responses** for comprehensive solutions
+
+### 4. **Implement Response Synthesis Engine**
+Create `response_synthesizer.py` that:
+```python
+def synthesize_agent_responses(agent_responses: List[AgentResponse]) -> str:
+    """
+    Combine multiple agent perspectives into one comprehensive answer
+    
+    Features:
+    - Identify overlapping insights
+    - Highlight conflicting viewpoints
+    - Create action-oriented synthesis
+    - Maintain each agent's unique perspective
+    """
+```
+
+### 5. **Create Multi-Agent Endpoint**
+Add to `main.py`:
+```python
+@app.route('/api/comprehensive-analysis', methods=['POST'])
+def comprehensive_analysis():
+    """
+    New endpoint that automatically chains relevant agents
+    for the most comprehensive response possible
+    """
+    user_query = request.json.get('query')
+    
+    # Analyze what expertise is needed
+    analysis = query_analyzer.analyze_user_query(user_query)
+    
+    # Chain appropriate agents
+    responses = agent_chain_orchestrator.process_chain(
+        query=user_query,
+        agent_chain=analysis['agent_chain']
+    )
+    
+    # Synthesize comprehensive answer
+    final_response = response_synthesizer.synthesize_agent_responses(responses)
+    
+    return jsonify({
+        "comprehensive_answer": final_response,
+        "perspectives_included": analysis['required_perspectives'],
+        "agents_consulted": analysis['agent_chain'],
+        "confidence_score": calculate_confidence(responses)
+    })
+```
+
+### 6. **Update Frontend for Multi-Agent Display**
+Modify the chat interface to:
+- **Show agent thinking process** ("Consulting CFO for financial analysis...")
+- **Display multiple perspectives** in expandable sections
+- **Highlight synthesis** as the main answer
+- **Show confidence scores** for each perspective
+
+### 7. **Implement Smart Agent Selection**
+Create logic that automatically determines optimal agent chains:
+
+```python
+# Example Query: "Should I quit my job to start a business?"
+AUTO_CHAIN = [
+    "CFO",      # Financial analysis of current vs projected income
+    "CSA",      # Strategic analysis of market opportunity  
+    "COO",      # Operational planning for business launch
+    "Personal_Coach",  # Personal readiness and risk tolerance
+    "SYNTHESIZER"      # Combine all perspectives
+]
+
+# Example Query: "I need help with my divorce"
+AUTO_CHAIN = [
+    "Legal_Expert",     # Legal rights and process
+    "Financial_Advisor", # Asset division and financial planning
+    "Therapist",        # Emotional support and coping
+    "Child_Psychologist", # If children involved
+    "SYNTHESIZER"       # Holistic divorce strategy
+]
+```
+
+### 8. **Add Context Passing Between Agents**
+Implement context awareness where:
+- **Agent 2 sees Agent 1's response** before providing their perspective
+- **Final agent has full context** from all previous agents
+- **Synthesis agent** combines all perspectives intelligently
+- **User context** is maintained throughout the chain
+
+### 9. **Create Confidence & Quality Scoring**
+Add quality assessment that:
+- **Scores each agent response** for relevance and completeness
+- **Identifies knowledge gaps** that need additional expertise
+- **Triggers additional agents** if confidence is low
+- **Provides transparency** about answer quality
+
+### 10. **Implement Dynamic Chain Adjustment**
+Build adaptive logic that:
+- **Adjusts agent chain** based on initial responses
+- **Adds specialists** if specific expertise is needed
+- **Skips redundant agents** if perspectives overlap
+- **Optimizes for speed vs comprehensiveness** based on user preference
+
+## Integration Points
+
+### Use Existing Systems:
+- ✅ **Expert Factory** - For dynamic expert generation
+- ✅ **Intelligent Router** - For optimal LLM selection per agent
+- ✅ **Multi-LLM Provider** - For diverse AI capabilities
+- ✅ **Agent Types** - Extend current CFO, CSA, etc.
+
+### New Components Needed:
+- 🆕 **Query Analyzer** - Break down user needs
+- 🆕 **Chain Orchestrator** - Manage agent sequences
+- 🆕 **Response Synthesizer** - Combine perspectives
+- 🆕 **Context Manager** - Pass information between agents
+
+## Expected Outcome
+
+**Before:** Single agent response
+"Here's some business advice..."
+
+**After:** Comprehensive multi-agent analysis
+```
+💰 FINANCIAL PERSPECTIVE (CFO via XAI):
+Your current cash flow supports 6 months runway...
+
+🎯 STRATEGIC PERSPECTIVE (CSA via Claude): 
+Market analysis shows 73% success rate in your sector...
+
+⚙️ OPERATIONAL PERSPECTIVE (COO via XAI):
+Implementation roadmap: Week 1-4 setup, Week 5-8 launch...
+
+🧠 PERSONAL READINESS (Life Coach via Claude):
+Psychological assessment indicates high entrepreneurial fit...
+
+📋 SYNTHESIS:
+Based on all perspectives, recommendation is...
+```
+
+## Implementation Priority
+1. **Query Analyzer** - Core logic for understanding user needs
+2. **Chain Orchestrator** - Agent sequencing and coordination  
+3. **Response Synthesizer** - Combine multiple perspectives
+4. **Frontend Updates** - Show multi-agent process to user
+5. **Advanced Features** - Confidence scoring, dynamic adjustment
+
+This transforms OperatorOS from single-agent responses to comprehensive multi-expert analysis for any user query.
