@@ -162,30 +162,34 @@ class AIProviderManager:
         }
     
     def _calculate_openai_cost(self, model: str, tokens: int) -> float:
-        """Calculate OpenAI cost based on model and tokens"""
+        """Calculate OpenAI cost based on model and tokens (2025 pricing)"""
+        # OpenAI 2025 pricing per 1k tokens
         rates = {
-            "gpt-4o": 0.000015,  # per 1k tokens
-            "gpt-4": 0.00003,
-            "gpt-3.5-turbo": 0.000002
+            "gpt-4o": 0.000015,  # $0.015 per 1k tokens
+            "gpt-4": 0.00003,    # $0.03 per 1k tokens
+            "gpt-3.5-turbo": 0.000002  # $0.002 per 1k tokens
         }
         return rates.get(model, 0.000015) * (tokens / 1000)
     
     def _calculate_anthropic_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
-        """Calculate Anthropic cost based on model and tokens"""
+        """Calculate Anthropic cost based on model and tokens (2025 pricing)"""
+        # Anthropic 2025 pricing per 1k tokens
         rates = {
-            "claude-sonnet-4-20250514": {"input": 0.000015, "output": 0.000075},
-            "claude-3-5-sonnet-20241022": {"input": 0.000003, "output": 0.000015}
+            "claude-sonnet-4-20250514": {"input": 0.015, "output": 0.075},  # $0.015 input, $0.075 output
+            "claude-3-5-sonnet-20241022": {"input": 0.003, "output": 0.015}  # $0.003 input, $0.015 output
         }
-        rate = rates.get(model, {"input": 0.000015, "output": 0.000075})
+        rate = rates.get(model, {"input": 0.015, "output": 0.075})
         return (rate["input"] * input_tokens + rate["output"] * output_tokens) / 1000
     
     def _calculate_grok_cost(self, model: str, tokens: int) -> float:
-        """Calculate Grok cost based on model and tokens"""
+        """Calculate Grok cost based on model and tokens (2025 pricing)"""
+        # xAI Grok 2025 pricing per 1k tokens
         rates = {
-            "grok-2-1212": 0.000010,  # per 1k tokens
-            "grok-2-vision-1212": 0.000015
+            "grok-2-1212": 0.010,  # $0.010 per 1k tokens
+            "grok-2-vision-1212": 0.015,  # $0.015 per 1k tokens
+            "grok-beta": 0.005  # $0.005 per 1k tokens
         }
-        return rates.get(model, 0.000010) * (tokens / 1000)
+        return rates.get(model, 0.010) * (tokens / 1000)
     
     def create_specialized_expert(self, field: str, expertise_level: str = "expert") -> str:
         """Create a specialized AI expert for any field"""

@@ -129,8 +129,17 @@ function displayAIResponse(data) {
     
     if (!responseDiv || !providerSpan || !contentDiv) return;
     
-    // Set provider information
-    providerSpan.textContent = data.provider || 'Unknown';
+    // Set provider information with cost
+    const cost = data.cost ? `$${data.cost.toFixed(4)}` : '$0.0000';
+    const tokens = data.tokens_used || 0;
+    const model = data.model || 'Unknown';
+    
+    providerSpan.innerHTML = `
+        <span class="text-primary">${data.provider || 'Unknown'}</span>
+        <span class="text-muted">• ${model}</span>
+        <span class="text-success">• ${tokens} tokens</span>
+        <span class="text-warning">• ${cost}</span>
+    `;
     
     // Format and display content
     const formattedContent = formatAIResponse(data.response);

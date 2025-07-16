@@ -25,7 +25,7 @@
 
         <!-- Statistics Cards -->
         <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body text-center">
                         <i class="fas fa-target fa-2x text-primary mb-2"></i>
@@ -35,7 +35,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body text-center">
                         <i class="fas fa-tasks fa-2x text-success mb-2"></i>
@@ -45,7 +45,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body text-center">
                         <i class="fas fa-check-circle fa-2x text-warning mb-2"></i>
@@ -55,12 +55,32 @@
                 </div>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body text-center">
                         <i class="fas fa-percentage fa-2x text-info mb-2"></i>
                         <h3 class="card-title">{{ "%.1f"|format(average_progress or 0) }}%</h3>
                         <p class="card-text text-muted">Avg Progress</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-robot fa-2x text-secondary mb-2"></i>
+                        <h3 class="card-title">{{ ai_conversations or 0 }}</h3>
+                        <p class="card-text text-muted">AI Chats</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-dollar-sign fa-2x text-danger mb-2"></i>
+                        <h3 class="card-title">${{ "%.3f"|format(total_ai_cost or 0) }}</h3>
+                        <p class="card-text text-muted">AI Cost</p>
                     </div>
                 </div>
             </div>

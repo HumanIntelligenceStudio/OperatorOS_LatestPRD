@@ -138,7 +138,9 @@ def ai_chat():
                 "response": response['content'],
                 "provider": response['provider'],
                 "model": response['model'],
-                "conversation_id": conversation.id
+                "conversation_id": conversation.id,
+                "tokens_used": response.get('tokens_used', 0),
+                "cost": response.get('cost', 0)
             })
         else:
             return jsonify({"error": response.get('error', 'AI generation failed')})

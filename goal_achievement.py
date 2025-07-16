@@ -218,6 +218,11 @@ class GoalAchievementSystem:
             recent_tasks.sort(key=lambda x: x.created_at, reverse=True)
             recent_tasks = recent_tasks[:10]
             
+            # Get AI conversation data
+            from models import AIConversation
+            ai_conversations = AIConversation.query.filter_by(user_id=user_id).all()
+            total_ai_cost = sum(conv.cost or 0 for conv in ai_conversations)
+            
             return {
                 "user": user,
                 "total_goals": total_goals,
@@ -225,7 +230,9 @@ class GoalAchievementSystem:
                 "completed_goals": completed_goals,
                 "average_progress": round(avg_progress, 1),
                 "goals": goals,
-                "recent_tasks": recent_tasks
+                "recent_tasks": recent_tasks,
+                "ai_conversations": len(ai_conversations),
+                "total_ai_cost": total_ai_cost
             }
             
         except Exception as e:
