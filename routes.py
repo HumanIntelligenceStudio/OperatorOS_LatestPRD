@@ -11,6 +11,9 @@ from admin_dashboard import admin_dashboard
 from payment_processing import payment_system
 from beekeeping_expert import beekeeping_expert
 from ai_providers import ai_manager
+from query_analyzer import query_analyzer
+from agent_chain_orchestrator import agent_orchestrator
+from response_synthesizer import response_synthesizer
 import json
 import logging
 
@@ -169,6 +172,168 @@ def rate_response():
     except Exception as e:
         logging.error(f"Rating error: {str(e)}")
         return jsonify({"error": str(e)})
+
+@app.route('/api/comprehensive-analysis', methods=['POST'])
+@require_login
+def comprehensive_analysis():
+    """
+    New endpoint that automatically chains relevant agents
+    for the most comprehensive response possible
+    """
+    try:
+        # Get request data
+        data = request.get_json()
+        user_query = data.get('query', '')
+        
+        if not user_query:
+            return jsonify({"error": "Query is required"}), 400
+        
+        # Optional parameters
+        complexity_preference = data.get('complexity', 'auto')  # auto, simple, comprehensive
+        max_agents = data.get('max_agents', 5)
+        
+        # Analyze what expertise is needed
+        analysis = query_analyzer.analyze_user_query(user_query)
+        
+        # Adjust agent chain based on preferences
+        agent_chain = analysis.agent_chain
+        if complexity_preference == 'simple':
+            agent_chain = agent_chain[:2]  # Limit to 2 agents
+        elif complexity_preference == 'comprehensive':
+            # Keep all agents, maybe add more
+            pass
+        
+        # Limit chain length
+        agent_chain = agent_chain[:max_agents]
+        
+        # Process the agent chain
+        chain_result = agent_orchestrator.process_chain(
+            query=user_query,
+            agent_chain=agent_chain,
+            user_context=f"User: {current_user.first_name or 'User'}"
+        )
+        
+        # Synthesize comprehensive answer
+        synthesis_result = response_synthesizer.synthesize_agent_responses(
+            chain_result.responses, user_query
+        )
+        
+        # Store conversation history for each agent
+        conversation_ids = []
+        for response in chain_result.responses:
+            conversation = AIConversation(
+                user_id=current_user.id,
+                provider=response.provider,
+                model=response.model,
+                prompt=f"[{response.agent_type}] {user_query}",
+                response=response.content,
+                tokens_used=response.tokens_used,
+                cost=response.cost
+            )
+            db.session.add(conversation)
+            conversation_ids.append(conversation.id)
+        
+        # Store synthesis as a separate conversation
+        synthesis_conversation = AIConversation(
+            user_id=current_user.id,
+            provider="synthesis",
+            model="multi-agent",
+            prompt=user_query,
+            response=synthesis_result.comprehensive_answer,
+            tokens_used=chain_result.total_tokens,
+            cost=chain_result.total_cost
+        )
+        db.session.add(synthesis_conversation)
+        db.session.commit()
+        
+        # Calculate confidence score
+        confidence_score = min(synthesis_result.confidence_score, chain_result.confidence_score)
+        
+        return jsonify({
+            "success": True,
+            "comprehensive_answer": synthesis_result.comprehensive_answer,
+            "perspectives_included": analysis.required_perspectives,
+            "agents_consulted": agent_chain,
+            "confidence_score": confidence_score,
+            "processing_time": chain_result.processing_time,
+            "total_tokens": chain_result.total_tokens,
+            "total_cost": chain_result.total_cost,
+            "synthesis_quality": synthesis_result.synthesis_quality,
+            "key_insights": [
+                {
+                    "content": insight.content,
+                    "source_agents": insight.source_agents,
+                    "priority": insight.priority
+                }
+                for insight in synthesis_result.key_insights
+            ],
+            "action_items": synthesis_result.action_items,
+            "conflicting_viewpoints": synthesis_result.conflicting_viewpoints,
+            "consensus_points": synthesis_result.consensus_points,
+            "conversation_id": synthesis_conversation.id,
+            "agent_responses": [
+                {
+                    "agent_type": response.agent_type,
+                    "provider": response.provider,
+                    "model": response.model,
+                    "content": response.content,
+                    "tokens_used": response.tokens_used,
+                    "cost": response.cost,
+                    "confidence_score": response.confidence_score,
+                    "perspective": response.perspective
+                }
+                for response in chain_result.responses
+            ]
+        })
+        
+    except Exception as e:
+        logging.error(f"Comprehensive analysis error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/analyze-query', methods=['POST'])
+@require_login
+def analyze_query():
+    """Analyze a query to preview what agents would be used"""
+    try:
+        data = request.get_json()
+        user_query = data.get('query', '')
+        
+        if not user_query:
+            return jsonify({"error": "Query is required"}), 400
+        
+        # Analyze the query
+        analysis = query_analyzer.analyze_user_query(user_query)
+        
+        # Get agent capabilities
+        agent_capabilities = {}
+        for agent_type in analysis.agent_chain:
+            agent_capabilities[agent_type] = query_analyzer.get_agent_capabilities(agent_type)
+        
+        return jsonify({
+            "success": True,
+            "analysis": {
+                "primary_domain": analysis.primary_domain,
+                "required_perspectives": analysis.required_perspectives,
+                "complexity_level": analysis.complexity_level,
+                "agent_chain": analysis.agent_chain,
+                "synthesis_needed": analysis.synthesis_needed,
+                "confidence_score": analysis.confidence_score,
+                "estimated_tokens": analysis.estimated_tokens
+            },
+            "agent_capabilities": agent_capabilities,
+            "estimated_cost": analysis.estimated_tokens * 0.00002,  # Rough estimate
+            "estimated_time": len(analysis.agent_chain) * 5  # Rough estimate in seconds
+        })
+        
+    except Exception as e:
+        logging.error(f"Query analysis error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/multi-agent-chat')
+@require_login
+def multi_agent_chat():
+    """Multi-agent chat interface"""
+    return render_template('multi_agent_chat.html')
 
 @app.route('/financial_analysis')
 @require_login

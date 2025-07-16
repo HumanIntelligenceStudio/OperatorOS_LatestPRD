@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}Multi-Agent Chat - OperatorOS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body">
+                    <h1 class="card-title mb-3">
+                        <i class="fas fa-users"></i> Multi-Agent Expert Analysis
+                    </h1>
+                    <p class="card-text">Get comprehensive insights from multiple AI experts working together to solve your challenges.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Query Input Section -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle"></i> Your Query</h5>
+                </div>
+                <div class="card-body">
+                    <form id="multiAgentForm">
+                        <div class="mb-3">
+                            <label for="userQuery" class="form-label">What would you like comprehensive analysis on?</label>
+                            <textarea class="form-control" id="userQuery" rows="4" placeholder="Ask anything that needs expert analysis from multiple perspectives..."></textarea>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="complexityLevel" class="form-label">Analysis Depth</label>
+                                <select class="form-select" id="complexityLevel">
+                                    <option value="auto">Auto-detect</option>
+                                    <option value="simple">Simple (2 experts)</option>
+                                    <option value="comprehensive">Comprehensive (5+ experts)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="maxAgents" class="form-label">Max Experts</label>
+                                <input type="number" class="form-control" id="maxAgents" value="5" min="1" max="10">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-primary" onclick="analyzeQuery()">
+                                <i class="fas fa-search"></i> Preview Analysis
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-rocket"></i> Get Comprehensive Analysis
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Query Preview Section -->
+            <div class="card border-0 shadow-sm mb-4" id="queryPreview" style="display: none;">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-eye"></i> Analysis Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div id="previewContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Processing Section -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-cogs"></i> Agent Processing</h5>
+                </div>
+                <div class="card-body">
+                    <div id="agentProcessing" style="display: none;">
+                        <div class="text-center mb-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                        </div>
+                        <div id="agentProgress"></div>
+                    </div>
+                    <div id="agentIdle" class="text-center text-muted">
+                        <i class="fas fa-robot fa-3x mb-3"></i>
+                        <p>Ready to analyze your query with multiple AI experts</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="row" id="resultsSection" style="display: none;">
+        <div class="col-12">
+            <!-- Synthesis Result -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Comprehensive Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div id="synthesisResult"></div>
+                </div>
+            </div>
+            
+            <!-- Metrics -->
+            <div class="row mb-4">
+                <div class="col-md-2">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                            <h5 id="agentsConsulted">0</h5>
+                            <small class="text-muted">Experts Consulted</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="fas fa-brain fa-2x text-success mb-2"></i>
+                            <h5 id="confidenceScore">0%</h5>
+                            <small class="text-muted">Confidence</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                            <h5 id="processingTime">0s</h5>
+                            <small class="text-muted">Processing Time</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="fas fa-dollar-sign fa-2x text-info mb-2"></i>
+                            <h5 id="totalCost">$0.00</h5>
+                            <small class="text-muted">Cost</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="fas fa-certificate fa-2x text-secondary mb-2"></i>
+                            <h5 id="synthesisQuality">-</h5>
+                            <small class="text-muted">Quality</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Key Insights -->
+            <div class="card border-0 shadow-sm mb-4" id="insightsCard" style="display: none;">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-star"></i> Key Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div id="keyInsights"></div>
+                </div>
+            </div>
+            
+            <!-- Action Items -->
+            <div class="card border-0 shadow-sm mb-4" id="actionItemsCard" style="display: none;">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Action Items</h5>
+                </div>
+                <div class="card-body">
+                    <div id="actionItems"></div>
+                </div>
+            </div>
+            
+            <!-- Individual Agent Responses -->
+            <div class="card border-0 shadow-sm mb-4" id="agentResponsesCard" style="display: none;">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-tie"></i> Individual Expert Perspectives
+                        <button class="btn btn-sm btn-outline-light float-end" type="button" data-bs-toggle="collapse" data-bs-target="#agentResponsesCollapse">
+                            <i class="fas fa-eye"></i> Show/Hide
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="agentResponsesCollapse">
+                    <div class="card-body">
+                        <div id="agentResponses"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Multi-Agent Chat JavaScript
+let currentAnalysisId = null;
+
+document.getElementById('multiAgentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    startComprehensiveAnalysis();
+});
+
+function analyzeQuery() {
+    const query = document.getElementById('userQuery').value.trim();
+    
+    if (!query) {
+        alert('Please enter a query to analyze.');
+        return;
+    }
+    
+    // Show loading state
+    document.getElementById('queryPreview').style.display = 'block';
+    document.getElementById('previewContent').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Analyzing...</span>
+            </div>
+            <p class="mt-2">Analyzing your query...</p>
+        </div>
+    `;
+    
+    fetch('/api/analyze-query', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: query })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayQueryPreview(data);
+        } else {
+            document.getElementById('previewContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Error: ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        document.getElementById('previewContent').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i> Error analyzing query: ${error.message}
+            </div>
+        `;
+    });
+}
+
+function displayQueryPreview(data) {
+    const analysis = data.analysis;
+    const capabilities = data.agent_capabilities;
+    
+    let html = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6><i class="fas fa-chart-pie"></i> Analysis Overview</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Domain:</strong> ${analysis.primary_domain}</li>
+                    <li><strong>Complexity:</strong> ${analysis.complexity_level}</li>
+                    <li><strong>Confidence:</strong> ${(analysis.confidence_score * 100).toFixed(1)}%</li>
+                    <li><strong>Est. Cost:</strong> $${data.estimated_cost.toFixed(4)}</li>
+                    <li><strong>Est. Time:</strong> ${data.estimated_time}s</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6><i class="fas fa-users"></i> Expert Team</h6>
+                <div class="row">
+    `;
+    
+    analysis.agent_chain.forEach(agent => {
+        const capability = capabilities[agent] || {};
+        html += `
+            <div class="col-6 mb-2">
+                <div class="badge bg-primary text-wrap w-100">
+                    ${agent}
+                </div>
+                <small class="text-muted">${capability.optimal_provider || 'AI'}</small>
+            </div>
+        `;
+    });
+    
+    html += `
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <h6><i class="fas fa-eye"></i> Perspectives</h6>
+            <div class="d-flex flex-wrap gap-2">
+    `;
+    
+    analysis.required_perspectives.forEach(perspective => {
+        html += `<span class="badge bg-secondary">${perspective}</span>`;
+    });
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('previewContent').innerHTML = html;
+}
+
+function startComprehensiveAnalysis() {
+    const query = document.getElementById('userQuery').value.trim();
+    const complexity = document.getElementById('complexityLevel').value;
+    const maxAgents = parseInt(document.getElementById('maxAgents').value);
+    
+    if (!query) {
+        alert('Please enter a query to analyze.');
+        return;
+    }
+    
+    // Show processing state
+    document.getElementById('agentIdle').style.display = 'none';
+    document.getElementById('agentProcessing').style.display = 'block';
+    document.getElementById('resultsSection').style.display = 'none';
+    
+    // Update progress
+    document.getElementById('agentProgress').innerHTML = `
+        <div class="progress mb-3">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                 role="progressbar" style="width: 20%"></div>
+        </div>
+        <p class="text-center">Analyzing query and selecting experts...</p>
+    `;
+    
+    // Start analysis
+    fetch('/api/comprehensive-analysis', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            query: query,
+            complexity: complexity,
+            max_agents: maxAgents
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayComprehensiveResults(data);
+        } else {
+            displayError(data.error);
+        }
+    })
+    .catch(error => {
+        displayError(error.message);
+    });
+}
+
+function displayComprehensiveResults(data) {
+    // Hide processing, show results
+    document.getElementById('agentProcessing').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'block';
+    
+    // Display synthesis
+    document.getElementById('synthesisResult').innerHTML = formatMarkdown(data.comprehensive_answer);
+    
+    // Update metrics
+    document.getElementById('agentsConsulted').textContent = data.agents_consulted.length;
+    document.getElementById('confidenceScore').textContent = `${(data.confidence_score * 100).toFixed(1)}%`;
+    document.getElementById('processingTime').textContent = `${data.processing_time.toFixed(1)}s`;
+    document.getElementById('totalCost').textContent = `$${data.total_cost.toFixed(4)}`;
+    document.getElementById('synthesisQuality').textContent = data.synthesis_quality;
+    
+    // Display key insights
+    if (data.key_insights && data.key_insights.length > 0) {
+        document.getElementById('insightsCard').style.display = 'block';
+        let insightsHtml = '';
+        data.key_insights.forEach((insight, index) => {
+            insightsHtml += `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-1">Insight ${index + 1}</h6>
+                        <small class="text-muted">Priority: ${insight.priority}</small>
+                    </div>
+                    <p class="mb-1">${insight.content}</p>
+                    <small class="text-muted">Source: ${insight.source_agents.join(', ')}</small>
+                </div>
+            `;
+        });
+        document.getElementById('keyInsights').innerHTML = insightsHtml;
+    }
+    
+    // Display action items
+    if (data.action_items && data.action_items.length > 0) {
+        document.getElementById('actionItemsCard').style.display = 'block';
+        let actionHtml = '<ul class="list-group list-group-flush">';
+        data.action_items.forEach(action => {
+            actionHtml += `<li class="list-group-item">${action}</li>`;
+        });
+        actionHtml += '</ul>';
+        document.getElementById('actionItems').innerHTML = actionHtml;
+    }
+    
+    // Display individual agent responses
+    if (data.agent_responses && data.agent_responses.length > 0) {
+        document.getElementById('agentResponsesCard').style.display = 'block';
+        let agentHtml = '';
+        data.agent_responses.forEach(response => {
+            agentHtml += `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-user-tie"></i> ${response.agent_type}
+                            <small class="text-muted">(${response.provider} - ${response.model})</small>
+                            <span class="badge bg-primary float-end">
+                                Confidence: ${(response.confidence_score * 100).toFixed(1)}%
+                            </span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-2"><strong>Perspective:</strong> ${response.perspective}</p>
+                        <div class="content">${formatMarkdown(response.content)}</div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Tokens: ${response.tokens_used} | Cost: $${response.cost.toFixed(4)}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('agentResponses').innerHTML = agentHtml;
+    }
+}
+
+function displayError(error) {
+    document.getElementById('agentProcessing').style.display = 'none';
+    document.getElementById('agentIdle').style.display = 'block';
+    document.getElementById('agentIdle').innerHTML = `
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i> Error: ${error}
+        </div>
+    `;
+}
+
+function formatMarkdown(text) {
+    // Simple markdown formatting
+    return text
+        .replace(/^# (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^## (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^### (.*$)/gm, '<h4>$1</h4>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+}
+</script>
+
+<style>
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+.content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+</style>
+{% endblock %}
