@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}Beekeeping Expert - OperatorOS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-warning text-dark">
+                <div class="card-body">
+                    <h1 class="card-title mb-3">
+                        <i class="fas fa-eye"></i> 🐝 Master Beekeeper Dashboard
+                    </h1>
+                    <p class="card-text">Your journey to becoming a successful, expert beekeeper starts here!</p>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-2">Active Beekeeper</span>
+                        <span class="badge bg-primary me-2">Hive Manager</span>
+                        <span class="badge bg-warning text-dark">Honey Producer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Dashboard -->
+    {% if dashboard.success %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-trophy text-warning"></i> Your Beekeeping Success Path
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="beekeeping-dashboard">
+                        {{ dashboard.dashboard|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Beekeeping Tools -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt text-info"></i> Seasonal Guidance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="seasonalForm">
+                        <div class="mb-3">
+                            <label class="form-label">Location/Climate</label>
+                            <input type="text" class="form-control" name="location" value="temperate climate" placeholder="e.g., temperate climate, Mediterranean">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Season</label>
+                            <select class="form-select" name="season">
+                                <option value="">Current Season</option>
+                                <option value="spring">Spring</option>
+                                <option value="summer">Summer</option>
+                                <option value="fall">Fall</option>
+                                <option value="winter">Winter</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-leaf"></i> Get Seasonal Advice
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-stethoscope text-danger"></i> Hive Health Diagnosis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="diagnosisForm">
+                        <div class="mb-3">
+                            <label class="form-label">Symptoms Observed</label>
+                            <textarea class="form-control" name="symptoms" rows="3" placeholder="Describe what you've noticed..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Hive Details</label>
+                            <input type="text" class="form-control" name="hive_details" placeholder="Hive age, size, recent changes...">
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-search"></i> Diagnose Issue
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clipboard-list text-success"></i> Management Plan
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="managementForm">
+                        <div class="mb-3">
+                            <label class="form-label">Number of Hives</label>
+                            <input type="number" class="form-control" name="hive_count" value="1" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Experience Level</label>
+                            <select class="form-select" name="experience_level">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Primary Goals</label>
+                            <input type="text" class="form-control" name="goals" value="honey production" placeholder="e.g., honey production, breeding">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-map"></i> Create Plan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Tools -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-honey-pot text-warning"></i> Honey Production Optimization
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="honeyForm">
+                        <div class="mb-3">
+                            <label class="form-label">Current Yield</label>
+                            <input type="text" class="form-control" name="current_yield" placeholder="e.g., 30 lbs per hive per year">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Hive Details</label>
+                            <textarea class="form-control" name="hive_details" rows="3" placeholder="Hive setup, location, equipment..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="fas fa-chart-line"></i> Optimize Production
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-crown text-primary"></i> Queen Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="queenForm">
+                        <div class="mb-3">
+                            <label class="form-label">Queen Status</label>
+                            <input type="text" class="form-control" name="queen_status" placeholder="e.g., new queen, laying well, aging">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Colony Behavior</label>
+                            <textarea class="form-control" name="colony_behavior" rows="3" placeholder="Colony activity, temperament, productivity..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-chess-queen"></i> Get Queen Advice
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Motivation Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-heart text-danger"></i> Beekeeping Motivation & Support
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="motivationForm">
+                        <div class="mb-3">
+                            <label class="form-label">Current Challenge or Question</label>
+                            <textarea class="form-control" name="challenge" rows="3" placeholder="What's challenging you right now in your beekeeping journey?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-lightbulb"></i> Get Encouragement & Guidance
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="row">
+        <div class="col-12">
+            <div id="beekeepingResults" class="card border-0 shadow-sm d-none">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-md"></i> Master Beekeeper Advice
+                        <span id="resultProvider" class="badge bg-secondary ms-2"></span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultContent" class="beekeeping-advice">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom JavaScript for Beekeeping -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setupBeekeepingForms();
+});
+
+function setupBeekeepingForms() {
+    const forms = {
+        'seasonalForm': '/beekeeping/seasonal',
+        'diagnosisForm': '/beekeeping/diagnose',
+        'managementForm': '/beekeeping/management-plan',
+        'honeyForm': '/beekeeping/honey-optimization',
+        'queenForm': '/beekeeping/queen-management',
+        'motivationForm': '/beekeeping/motivation'
+    };
+
+    Object.entries(forms).forEach(([formId, endpoint]) => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleBeekeepingRequest(form, endpoint);
+            });
+        }
+    });
+}
+
+function handleBeekeepingRequest(form, endpoint) {
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consulting Expert...';
+    
+    fetch(endpoint, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success !== false) {
+            displayBeekeepingResults(data);
+            showNotification('Expert advice generated successfully!', 'success');
+        } else {
+            showNotification('Error: ' + (data.error || 'Unknown error'), 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Beekeeping request error:', error);
+        showNotification('An error occurred while consulting the expert.', 'danger');
+    })
+    .finally(() => {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
+    });
+}
+
+function displayBeekeepingResults(data) {
+    const resultsDiv = document.getElementById('beekeepingResults');
+    const providerSpan = document.getElementById('resultProvider');
+    const contentDiv = document.getElementById('resultContent');
+    
+    if (!resultsDiv || !providerSpan || !contentDiv) return;
+    
+    // Set provider information
+    providerSpan.textContent = data.provider || 'Master Beekeeper';
+    
+    // Determine the content key based on response structure
+    let content = data.guidance || data.diagnosis || data.management_plan || 
+                 data.optimization_advice || data.queen_advice || data.motivation || 
+                 data.dashboard || '';
+    
+    // Format and display content
+    const formattedContent = formatBeekeepingAdvice(content);
+    contentDiv.innerHTML = formattedContent;
+    
+    // Show the results
+    resultsDiv.classList.remove('d-none');
+    
+    // Smooth scroll to results
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function formatBeekeepingAdvice(content) {
+    if (!content) return '<p class="text-muted">No advice available.</p>';
+    
+    // Convert markdown-style formatting to HTML
+    content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    content = content.replace(/### (.*)/g, '<h5 class="text-warning mt-3 mb-2">🐝 $1</h5>');
+    content = content.replace(/## (.*)/g, '<h4 class="text-primary mt-3 mb-2">$1</h4>');
+    content = content.replace(/# (.*)/g, '<h3 class="text-success mt-3 mb-2">$1</h3>');
+    
+    // Convert line breaks to HTML
+    content = content.replace(/\n\n/g, '</p><p>');
+    content = content.replace(/\n/g, '<br>');
+    
+    // Wrap in paragraph tags
+    content = '<p>' + content + '</p>';
+    
+    return content;
+}
+
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.style.minWidth = '300px';
+    
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
+</script>
+
+<style>
+.beekeeping-dashboard {
+    line-height: 1.6;
+}
+
+.beekeeping-advice {
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+
+.beekeeping-advice h3, .beekeeping-advice h4, .beekeeping-advice h5 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.beekeeping-advice p {
+    margin-bottom: 1rem;
+}
+
+.beekeeping-advice ul, .beekeeping-advice ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.beekeeping-advice li {
+    margin-bottom: 0.5rem;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}

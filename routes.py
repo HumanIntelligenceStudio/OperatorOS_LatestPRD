@@ -9,6 +9,7 @@ from financial_analysis import financial_system
 from service_templates import service_templates
 from admin_dashboard import admin_dashboard
 from payment_processing import payment_system
+from beekeeping_expert import beekeeping_expert
 from ai_providers import ai_manager
 import json
 import logging
@@ -390,6 +391,102 @@ def pricing():
     except Exception as e:
         logging.error(f"Pricing page error: {str(e)}")
         return render_template('pricing.html', error=str(e))
+
+@app.route('/beekeeping')
+@require_login
+def beekeeping_dashboard():
+    """Beekeeping expert dashboard"""
+    try:
+        # Get beekeeping success dashboard
+        dashboard_data = beekeeping_expert.create_success_dashboard()
+        return render_template('beekeeping.html', dashboard=dashboard_data)
+    except Exception as e:
+        logging.error(f"Beekeeping dashboard error: {str(e)}")
+        return render_template('beekeeping.html', error=str(e))
+
+@app.route('/beekeeping/seasonal', methods=['POST'])
+@require_login
+def beekeeping_seasonal():
+    """Get seasonal beekeeping guidance"""
+    try:
+        location = request.form.get('location', 'temperate climate')
+        season = request.form.get('season', '')
+        
+        guidance = beekeeping_expert.get_seasonal_guidance(location, season)
+        return jsonify(guidance)
+    except Exception as e:
+        logging.error(f"Seasonal guidance error: {str(e)}")
+        return jsonify({"error": str(e)})
+
+@app.route('/beekeeping/diagnose', methods=['POST'])
+@require_login
+def beekeeping_diagnose():
+    """Diagnose hive issues"""
+    try:
+        symptoms = request.form.get('symptoms', '')
+        hive_details = request.form.get('hive_details', '')
+        
+        diagnosis = beekeeping_expert.diagnose_hive_issue(symptoms, hive_details)
+        return jsonify(diagnosis)
+    except Exception as e:
+        logging.error(f"Hive diagnosis error: {str(e)}")
+        return jsonify({"error": str(e)})
+
+@app.route('/beekeeping/management-plan', methods=['POST'])
+@require_login
+def beekeeping_management_plan():
+    """Create hive management plan"""
+    try:
+        hive_count = int(request.form.get('hive_count', 1))
+        experience_level = request.form.get('experience_level', 'beginner')
+        goals = request.form.get('goals', 'honey production')
+        
+        plan = beekeeping_expert.create_hive_management_plan(hive_count, experience_level, goals)
+        return jsonify(plan)
+    except Exception as e:
+        logging.error(f"Management plan error: {str(e)}")
+        return jsonify({"error": str(e)})
+
+@app.route('/beekeeping/honey-optimization', methods=['POST'])
+@require_login
+def beekeeping_honey_optimization():
+    """Optimize honey production"""
+    try:
+        current_yield = request.form.get('current_yield', '')
+        hive_details = request.form.get('hive_details', '')
+        
+        optimization = beekeeping_expert.optimize_honey_production(current_yield, hive_details)
+        return jsonify(optimization)
+    except Exception as e:
+        logging.error(f"Honey optimization error: {str(e)}")
+        return jsonify({"error": str(e)})
+
+@app.route('/beekeeping/queen-management', methods=['POST'])
+@require_login
+def beekeeping_queen_management():
+    """Queen management advice"""
+    try:
+        queen_status = request.form.get('queen_status', '')
+        colony_behavior = request.form.get('colony_behavior', '')
+        
+        advice = beekeeping_expert.get_queen_management_advice(queen_status, colony_behavior)
+        return jsonify(advice)
+    except Exception as e:
+        logging.error(f"Queen management error: {str(e)}")
+        return jsonify({"error": str(e)})
+
+@app.route('/beekeeping/motivation', methods=['POST'])
+@require_login
+def beekeeping_motivation():
+    """Get beekeeping motivation"""
+    try:
+        challenge = request.form.get('challenge', '')
+        
+        motivation = beekeeping_expert.get_beekeeping_motivation(challenge)
+        return jsonify(motivation)
+    except Exception as e:
+        logging.error(f"Beekeeping motivation error: {str(e)}")
+        return jsonify({"error": str(e)})
 
 # Error handlers
 @app.errorhandler(404)
